@@ -34,7 +34,8 @@ contract SanityRates is SanityRatesInterface, Withdrawable, Utils {
     }
 
     function getSanityRate(ERC20 src, ERC20 dest) public view returns(uint) {
-        if (src != ETH_TOKEN_ADDRESS && dest != ETH_TOKEN_ADDRESS) return 0;
+        if (src != ETH_TOKEN_ADDRESS && dest != ETH_TOKEN_ADDRESS) 
+        return 0;
 
         uint rate;
         address token;

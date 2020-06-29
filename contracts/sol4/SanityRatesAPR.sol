@@ -6,9 +6,14 @@ import "./Withdrawable.sol";
 import "./Utils.sol";
 import "./SanityRatesInterface.sol";
 
-import "@nomiclabs/buidler/console.sol";
-
 contract SanityRatesAPR is SanityRatesInterface, Withdrawable, Utils {
+
+    // doesn't have to pass in an array, only one ERC token, stores it in the storage
+    // so just a uint, not a mapping
+
+    // APR Reserve Contract?
+    // set which Token it supports (check on the SanityRate, make sure the rate it's checking for is meant for this token)
+
     mapping(address=>uint) public tokenRate;
     mapping(address=>uint) public reasonableDiffInBps;
 
@@ -32,20 +37,71 @@ contract SanityRatesAPR is SanityRatesInterface, Withdrawable, Utils {
             require(rates[i] <= MAX_RATE);
             tokenRate[srcs[i]] = rates[i];
         }
+        // This function is where rates are being submitted off-chain
     }
 
-    function getSanityRate(ERC20 src, ERC20 dest) public view returns(uint) {
-        if (src != ETH_TOKEN_ADDRESS && dest != ETH_TOKEN_ADDRESS) return 0;
+    function setOracle(address oracle) public views onlyOperator returns (bool) {
+        // if Oracle is a valid ETH address and has implemented getRates() (for example), return true
+        // to do : what if someone calls an invalid ETH address? what if its just a random person?
 
+        return false;
+    }
+
+    function queryOracle(ERC20 src, ERC20 dest) internal pure returns (uint) {
+
+        // to do: queryOracle function should be called when getSanityRate is called.
+        // it will take src, dest tokens, and query the oracle on-chain to get the price feeds,
+        // then use price feeds to set the sanity rate.
         uint rate;
         address token;
+
+        // logic to interface with whatever chosen oracle -- getRate(?) should be implemented.
+
+        // allow users to have the choice, to use many different oracle services, so it might have to be more flexible <band protocol for oracles>
+
+        // have a flag -- if using 3rd party, query protocol, if self maintaining, query rates from storage instead
+
+        // returns a Sanity Rate from the Oracle <oracleRate>
+        return oracleRate;
+    }
+
+    function min(uint a, uint b) internal pure returns(uint) {}
+        return a < b ? a : b;
+    }
+
+    // this is when we return the sanity rate (just for the particular token)
+
+    function getSanityRate(ERC20 src, ERC20 dest) public view returns(uint) {
+
+        // Some type of on-chain logic that compares sanityRate from queryOracle with sanityRate set
+        // by operator. Choose whichever will prevent the trade (ie, whichever is less).
+
+        if (src != ETH_TOKEN_ADDRESS && dest != ETH_TOKEN_ADDRESS) return 0;
+        // if src is ETH, then dest must be token, otherwise if src is token, then dest must be ETH
+
+        // check if the rate its asking for is the same token?
+
+        uint rate;
+        uint oracleRate;
+        address token;
+
+        // refactor: let them have the choice of having 3rd party oracle or local storage rates
+
         if (src == ETH_TOKEN_ADDRESS) {
-            rate = (PRECISION*PRECISION)/tokenRate[dest];
+            oracleRate = queryOracle(src, dest); // check again if src/dest is correct
+            rate = min(oracleRate,
+                    (PRECISION*PRECISION)/tokenRate[dest]);
             token = dest;
         } else {
-            rate = tokenRate[src];
+            oracleRate = queryOracle(dest, src);
+            rate = min(oracleRate, 
+                    tokenRate[src]);
             token = src;
         }
+
+        // if currRate differs from the sanity Rate more than 2% -- reasonable diff, use the sanityRate instead.
+
+        // how do you want to prevent impermanent loss? make it exact? it could happen where you'll always end up using the sanityRate. compute some buffer to allow for some minor market movements.
 
         return rate * (10000 + reasonableDiffInBps[token])/10000;
     }

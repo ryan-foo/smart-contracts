@@ -36,7 +36,7 @@
     "yargs": "11.1.1"
   },
   "devDependencies": {
-    "@nomiclabs/buidler": "^1.3.0",
+    "@nomiclabs/buidler": "^1.3.8",
     "@nomiclabs/buidler-truffle5": "1.3.0",
     "@nomiclabs/buidler-web3": "1.3.0",
     "@openzeppelin/test-helpers": "0.5.6",

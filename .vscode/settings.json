@@ -1,0 +1,8 @@
+{
+    "solidity.lintOnChange": "solium-only",
+    "solidity.lintOnOpen": "solium-only",
+    "solidity.lintOnSave": "solium-only",
+    "solidity.compilerRemappings": [
+    
+    ]
+}

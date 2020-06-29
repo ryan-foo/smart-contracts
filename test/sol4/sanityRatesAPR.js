@@ -18,10 +18,24 @@ const bps = new BN(10000);
 let sanityRates;
 let admin;
 let operator;
-let numTokens = 4;
+let numTokens = 1;
 let tokens = [];
 let rates = [];
 let reasonableDiffs = [];
+
+// separate tests in terms of functionality
+
+// describe getSanityRate in many different situations
+
+// describe reserve manager did not set the sanityRate
+
+// describe where the sanityRate where the price difference, the rate returned by the reserve is very small, which rate should be used? what do you expect?
+
+// the diff between sanity rate and reserve rate? which one do you expect to use?
+
+// look at very worst case scenarios, what if reserve manager is malicious?
+
+// how would you protect reserve against that? <extreme cases>
 
 contract('SanityRates', function(accounts) {
 
@@ -36,6 +50,8 @@ contract('SanityRates', function(accounts) {
         admin = accounts[6];
         storage = accounts[7];
         // dao = accounts[8];
+
+        // SanityRatesAPR only supports one token, so I only set the rates for one token
 
         for (let i = 0; i < numTokens; i++) {
             tokens[i] = accounts[i + 1];
@@ -53,11 +69,10 @@ contract('SanityRates', function(accounts) {
     });
 
     it("should return sanityRates unchanged when reasonableDiff is set to 0") async () => {
-        // to do
-    }
+    };
 
     // From SanityRates.sol
-    it("check rates for token 0 (where diff is 0) so only tests rates.", async function () {
+    it("check rates for token 0 (where diff is 0) so only tests rates.", async () => {
         let tokenToEthRate = await sanityRates.getSanityRate(tokens[0], ethAddress);
         Helper.assertEqual(tokenToEthRate, rates[0], "unexpected rate");
 
@@ -66,7 +81,7 @@ contract('SanityRates', function(accounts) {
         Helper.assertEqual(expectedEthToToken, ethToTokenRate, "unexpected rate");
     });
 
-    it("check rates with reasonable diff.", async function () {
+    it("check rates with reasonable diff.", async () => {
         let tokenInd = 1;
         let expectedTokenToEthRate = rates[tokenInd].mul(bps.add(reasonableDiffs[tokenInd])).div(bps);
 
@@ -78,7 +93,7 @@ contract('SanityRates', function(accounts) {
         Helper.assertEqual(expectedEthToToken, ethToTokenRate, "unexpected rate");
     });
 
-    it("should test can't init this contract with empty contracts (address 0).", async function () {
+    it("should test can't init this contract with empty contracts (address 0).", async () => {
         let sanityRatess;
 
         try {
@@ -91,7 +106,7 @@ contract('SanityRates', function(accounts) {
         sanityRatess = await SanityRates.new(admin);
     });
 
-    it("should test can't init diffs when array lengths aren't the same.", async function () {
+    it("should test can't init diffs when array lengths aren't the same.", async () => {
         reasonableDiffs.push(8);
         try {
             await sanityRates.setReasonableDiff(tokens, reasonableDiffs);
@@ -105,7 +120,7 @@ contract('SanityRates', function(accounts) {
         await sanityRates.setReasonableDiff(tokens, reasonableDiffs);
     });
 
-    it("should test can't init diffs when value > max diff (10000 = 100%).", async function () {
+    it("should test can't init diffs when value > max diff (10000 = 100%).", async () => {
         reasonableDiffs[0] =  new BN(10001);
 
         try {
@@ -160,13 +175,47 @@ contract('SanityRates', function(accounts) {
         Helper.assertEqual(rate0, 0, "0 rate expected");
     });
 
-
-    it("should query the oracle and receive the oracle's rates."), async function () {
+    it("should change the current oracle when you call setOracle with a valid address"), async () => {
+        let setOracle = await sanityRates.setOracle(address);
         // to do
+        return setOracle;
+    };
+
+    it("should warn you when you set an invalid oracle address"), async () => {
+        // to do
+        return false;
     }
 
-    it("should use the oracle's rate and reasonableDiff to set the sanity rates"), async function () {
+
+    it("should query the oracle and receive the oracle's rates."), async () => {
         // to do
+        let queryOracle = await sanityRates.queryOracle(tokens[1], tokens[2]);
+        return false;
+    }
+
+    it("should use the oracle's rate and reasonableDiff to set the sanity rates"), async () => {
+        // to do
+        return false;
+    }
+
+    describe("Testing Sanity Rate by getting and setting"), async () => {
+        return false;
+    }
+
+    // also failing use cases, and successful cases
+    // checks for regression as well
+
+    describe("Sanity Rate is not set by the reserve manager"), async () => {
+        // high level that holds multiple tests
+        it("should return zero"), async() => {
+            let rate = await sanityRates.getSanityRate(kncAddress, ethAddress);
+            Helper.assertEqual(rate, zero, 'this is not zero');
+        }
+
+        it("should alert that Sanity Rate is not set"), async() => {
+            return false;
+        }
+
     }
 
 });
