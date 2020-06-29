@@ -53,10 +53,10 @@ contract('SanityRates', function(accounts) {
     });
 
     it("should return sanityRates unchanged when reasonableDiff is set to 0") async () => {
-        // let tokenToEthRate = await sanityRates.getSanityRate(tokens[0], ethAddress);
+        // to do
     }
 
-
+    // From SanityRates.sol
     it("check rates for token 0 (where diff is 0) so only tests rates.", async function () {
         let tokenToEthRate = await sanityRates.getSanityRate(tokens[0], ethAddress);
         Helper.assertEqual(tokenToEthRate, rates[0], "unexpected rate");
