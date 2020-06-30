@@ -11,7 +11,7 @@ contract SanityRatesAPR is SanityRatesInterface, Withdrawable, Utils {
     // doesn't have to pass in an array, only one ERC token, stores it in the storage
     // so just a uint, not a mapping
 
-    // APR Reserve Contract?
+    // APR Reserve Contract
     // set which Token it supports (check on the SanityRate, make sure the rate it's checking for is meant for this token)
 
     mapping(address=>uint) public tokenRate;
@@ -40,7 +40,7 @@ contract SanityRatesAPR is SanityRatesInterface, Withdrawable, Utils {
         // This function is where rates are being submitted off-chain
     }
 
-    function setOracle(address oracle) public views onlyOperator returns (bool) {
+    function setOracle(address oracle) public view onlyOperator returns (bool) {
         // if Oracle is a valid ETH address and has implemented getRates() (for example), return true
         // to do : what if someone calls an invalid ETH address? what if its just a random person?
 
@@ -62,11 +62,7 @@ contract SanityRatesAPR is SanityRatesInterface, Withdrawable, Utils {
         // have a flag -- if using 3rd party, query protocol, if self maintaining, query rates from storage instead
 
         // returns a Sanity Rate from the Oracle <oracleRate>
-        return oracleRate;
-    }
-
-    function min(uint a, uint b) internal pure returns(uint) {}
-        return a < b ? a : b;
+        return 0;
     }
 
     // this is when we return the sanity rate (just for the particular token)
@@ -89,13 +85,11 @@ contract SanityRatesAPR is SanityRatesInterface, Withdrawable, Utils {
 
         if (src == ETH_TOKEN_ADDRESS) {
             oracleRate = queryOracle(src, dest); // check again if src/dest is correct
-            rate = min(oracleRate,
-                    (PRECISION*PRECISION)/tokenRate[dest]);
+            rate = (PRECISION*PRECISION)/tokenRate[dest];
             token = dest;
         } else {
             oracleRate = queryOracle(dest, src);
-            rate = min(oracleRate, 
-                    tokenRate[src]);
+            rate = tokenRate[src];
             token = src;
         }
 
