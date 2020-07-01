@@ -13,47 +13,44 @@ contract SanityRatesAPR is SanityRatesInterface, Withdrawable, Utils {
 
     // APR Reserve Contract
     // set which Token it supports (check on the SanityRate, make sure the rate it's checking for is meant for this token)
+    
+    ERC20 public token;
+    uint public tokenRate;
+    uint public reasonableDiffInBps;
 
-    mapping(address=>uint) public tokenRate;
-    mapping(address=>uint) public reasonableDiffInBps;
-
-    function SanityRates(address _admin) public {
+    function SanityRatesAPR(address _admin) public {
         require(_admin != address(0));
         admin = _admin;
     }
 
-    function setReasonableDiff(ERC20[] srcs, uint[] diff) public onlyAdmin {
-        require(srcs.length == diff.length);
-        for (uint i = 0; i < srcs.length; i++) {
-            require(diff[i] <= 100 * 100);
-            reasonableDiffInBps[srcs[i]] = diff[i];
+    function setReasonableDiff(uint diff) public onlyAdmin {
+            require(diff <= 100 * 100);
+            reasonableDiffInBps = diff;
         }
-    }
 
-    function setSanityRates(ERC20[] srcs, uint[] rates) public onlyOperator {
-        require(srcs.length == rates.length);
-
-        for (uint i = 0; i < srcs.length; i++) {
-            require(rates[i] <= MAX_RATE);
-            tokenRate[srcs[i]] = rates[i];
+    function setSanityRates(uint rate) public onlyOperator {
+            require(rate <= MAX_RATE);
+            tokenRate = rate;
         }
-        // This function is where rates are being submitted off-chain
-    }
+        // This function is where rates are being submitted from off-chain (when manually set)
 
-    function setOracle(address oracle) public view onlyOperator returns (bool) {
+    function setOracle(address oracle) public view onlyOperator returns(bool) {
         // if Oracle is a valid ETH address and has implemented getRates() (for example), return true
         // to do : what if someone calls an invalid ETH address? what if its just a random person?
+
 
         return false;
     }
 
-    function queryOracle(ERC20 src, ERC20 dest) internal pure returns (uint) {
+    function queryOracle(ERC20 src, ERC20 dest) internal pure returns(uint) {
 
         // to do: queryOracle function should be called when getSanityRate is called.
         // it will take src, dest tokens, and query the oracle on-chain to get the price feeds,
-        // then use price feeds to set the sanity rate.
+        // then use price feeds as an alternative to the sanity rate.
         uint rate;
-        address token;
+
+        if (src != ETH_TOKEN_ADDRESS && dest != ETH_TOKEN_ADDRESS) return 0;
+        
 
         // logic to interface with whatever chosen oracle -- getRate(?) should be implemented.
 
@@ -79,17 +76,16 @@ contract SanityRatesAPR is SanityRatesInterface, Withdrawable, Utils {
 
         uint rate;
         uint oracleRate;
-        address token;
 
         // refactor: let them have the choice of having 3rd party oracle or local storage rates
 
         if (src == ETH_TOKEN_ADDRESS) {
             oracleRate = queryOracle(src, dest); // check again if src/dest is correct
-            rate = (PRECISION*PRECISION)/tokenRate[dest];
+            rate = (PRECISION*PRECISION)/tokenRate;
             token = dest;
         } else {
             oracleRate = queryOracle(dest, src);
-            rate = tokenRate[src];
+            rate = tokenRate;
             token = src;
         }
 
@@ -97,6 +93,6 @@ contract SanityRatesAPR is SanityRatesInterface, Withdrawable, Utils {
 
         // how do you want to prevent impermanent loss? make it exact? it could happen where you'll always end up using the sanityRate. compute some buffer to allow for some minor market movements.
 
-        return rate * (10000 + reasonableDiffInBps[token])/10000;
+        return rate * (10000 + reasonableDiffInBps)/10000;
     }
 }
