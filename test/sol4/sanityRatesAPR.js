@@ -45,6 +45,7 @@ contract('SanityRatesAPR', function(accounts) {
         operator = accounts[2];
         user = accounts[3];
         storage = accounts[4];
+        oracle = accounts[5];
         // SanityRatesAPR only supports one token, so I only set the rates for one token
 
         rate = new BN(1).mul(precisionUnits.div(new BN(10)));
@@ -58,15 +59,10 @@ contract('SanityRatesAPR', function(accounts) {
 
     describe("Functionality of setReasonableDiff", async() => {
         it("should change reasonableDiff from the default reasonableDiff", async() => {
+            expectedReasonableDiff = 10000;
+            reasonableDiff = await sanityRatesAPR.setReasonableDiff(10000); // 10000 is 10%
 
-        });
-
-        it("should throw a TypeError when we set reasonableDiff to a string", async() => {
-
-        });
-
-        it("should complain when we set reasonableDiff to be negative", async() => {
-
+            Helper.assertEqual(await sanityRatesAPR.reasonableDiffInBps(), expectedReasonableDiff);
         });
 
     });
@@ -96,9 +92,9 @@ contract('SanityRatesAPR', function(accounts) {
     describe("Functionality of setOracle", async () => {
 
         it("should change the current oracle when you call setOracle with a valid address", async () => {
-            let oracleAddress = await sanityRatesAPR.setOracle(address, {from: operator});
+            let oracleAddress = await sanityRatesAPR.setOracle(oracle, {from: operator});
             // to do
-            let expectedOracleAddress = address;
+            let expectedOracleAddress = oracle;
             return Helper.assertEqual(oracleAddress, expectedOracle);
         });
     
