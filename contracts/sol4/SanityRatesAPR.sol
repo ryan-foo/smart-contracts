@@ -17,6 +17,7 @@ contract SanityRatesAPR is SanityRatesInterface, Withdrawable, Utils {
     ERC20 public token;
     uint public tokenRate;
     uint public reasonableDiffInBps;
+    address oracleAddress;
 
     function SanityRatesAPR(address _admin) public {
         require(_admin != address(0));
@@ -24,22 +25,23 @@ contract SanityRatesAPR is SanityRatesInterface, Withdrawable, Utils {
     }
 
     function setReasonableDiff(uint diff) public onlyAdmin {
-            require(diff <= 100 * 100);
-            reasonableDiffInBps = diff;
-        }
+        require(diff <= 100 * 100);
+        reasonableDiffInBps = diff;
+    }
 
     function setSanityRates(uint rate) public onlyOperator {
-            require(rate <= MAX_RATE);
-            tokenRate = rate;
-        }
+        require(rate <= MAX_RATE);
+        tokenRate = rate;
+    }
         // This function is where rates are being submitted from off-chain (when manually set)
 
-    function setOracle(address oracle) public view onlyOperator returns(bool) {
+    function setOracle(address oracle) public view onlyOperator {
         // if Oracle is a valid ETH address and has implemented getRates() (for example), return true
         // to do : what if someone calls an invalid ETH address? what if its just a random person?
 
+        // include an attempt to queryOracle here
 
-        return false;
+        oracleAddress = oracle;
     }
 
     function queryOracle(ERC20 src, ERC20 dest) internal pure returns(uint) {
@@ -47,10 +49,9 @@ contract SanityRatesAPR is SanityRatesInterface, Withdrawable, Utils {
         // to do: queryOracle function should be called when getSanityRate is called.
         // it will take src, dest tokens, and query the oracle on-chain to get the price feeds,
         // then use price feeds as an alternative to the sanity rate.
-        uint rate;
 
         if (src != ETH_TOKEN_ADDRESS && dest != ETH_TOKEN_ADDRESS) return 0;
-        
+        // uses oracleAddress
 
         // logic to interface with whatever chosen oracle -- getRate(?) should be implemented.
 
