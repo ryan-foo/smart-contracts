@@ -1,12 +1,11 @@
-pragma solidity 0.4.18;
+pragma solidity 0.6.6;
 
+import "./IERC20.sol";
+import "./utils/WithdrawableNoModifiers.sol";
+import "./utils/Utils5.sol";
+import "./ISanityRateAPR.sol";
 
-import "./ERC20Interface.sol"; // V6 IERC20
-import "./Withdrawable.sol"; // V6 utils/WithdrawalNoModifiers
-import "./Utils.sol"; // V6 utils/Utils5.sol
-import "./SanityRatesInterface.sol"; // V6 SanityRatesInterface translate to Sol6, or dao/ISanityRate
-
-contract SanityRatesAPR is SanityRatesInterface, Withdrawable, Utils {
+contract SanityRatesAPR is ISanityRateAPR, WithdrawableNoModifiers, Utils5 {
 
     // APR Reserve Contract
     // set which Token it supports (check on the SanityRate, make sure the rate it's checking for is meant for this token)
@@ -20,42 +19,44 @@ contract SanityRatesAPR is SanityRatesInterface, Withdrawable, Utils {
     // Because more features --> require, revert messages
     // additional keywords
     
-    ERC20 public token;
+    IERC20 public token;
     uint public tokenRate;
     uint public reasonableDiffInBps;
     address public oracleAddress;
 
-    function SanityRatesAPR(address _admin) public {
-        require(_admin != address(0));
-        admin = _admin;
+    constructor(address _admin) public WithdrawableNoModifiers(_admin) {
     }
 
-    function setReasonableDiff(uint diff) public onlyAdmin {
+    function setReasonableDiff(uint diff) public {
+        onlyAdmin();
         require(diff <= 100 * 100);
         reasonableDiffInBps = diff;
     }
 
-    function setSanityRates(uint rate) public onlyOperator {
+    function setSanityRates(uint rate) public {
+        onlyOperator();
         require(rate <= MAX_RATE);
         tokenRate = rate;
     }
         // This function is where rates are being submitted from off-chain (when manually set)
 
-    function setOracle(address oracle) public view onlyOperator {
+    function setOracle(address oracle) public payable {
+        onlyOperator();
         // if Oracle is a valid ETH address and has implemented getRates() (for example), return true
-        // to do : what if someone calls an invalid ETH address? what if its just a random person?
+        // to do: what if someone calls an invalid ETH address? what if its just a random person?
 
         // include an attempt to queryOracle here
 
         oracleAddress = oracle;
     }
 
-    function queryOracle(ERC20 src, ERC20 dest) internal pure returns(uint) {
+    function queryOracle(IERC20 src, IERC20 dest) internal view returns(uint) {
 
         // to do: queryOracle function should be called when getSanityRate is called.
         // it will take src, dest tokens, and query the oracle on-chain to get the price feeds,
         // then use price feeds as an alternative to the sanity rate.
-        if (oracleAddress == "0x0000000000000000000000000000000000000000") return 0;
+        
+        // if (oracleAddress == 'address') return 0;
 
         if (src != ETH_TOKEN_ADDRESS || dest != ETH_TOKEN_ADDRESS) return 0;
         if (src != token || dest != token) return 0;
@@ -77,7 +78,7 @@ contract SanityRatesAPR is SanityRatesInterface, Withdrawable, Utils {
 
     // this is when we return the sanity rate (just for the particular token)
 
-    function getSanityRate(ERC20 src, ERC20 dest) public view returns(uint) {
+    function getSanityRate(IERC20 src, IERC20 dest) external payable override returns(uint) {
 
         // Some type of on-chain logic that compares sanityRate from queryOracle with sanityRate set
         // by operator. Choose whichever will prevent the trade (ie, whichever is less).
