@@ -40,7 +40,7 @@ contract SanityRatesAPR is ISanityRateAPR, WithdrawableNoModifiers, Utils5 {
     }
         // This function is where rates are being submitted from off-chain (when manually set)
 
-    function setOracle(address oracle) public payable {
+    function setOracle(address oracle) public {
         onlyOperator();
         // if Oracle is a valid ETH address and has implemented getRates() (for example), return true
         // to do: what if someone calls an invalid ETH address? what if its just a random person?
@@ -50,7 +50,7 @@ contract SanityRatesAPR is ISanityRateAPR, WithdrawableNoModifiers, Utils5 {
         oracleAddress = oracle;
     }
 
-    function queryOracle(IERC20 src, IERC20 dest) internal view returns(uint) {
+    function queryOracle(IERC20 src, IERC20 dest) public view returns(uint) {
 
         // to do: queryOracle function should be called when getSanityRate is called.
         // it will take src, dest tokens, and query the oracle on-chain to get the price feeds,
