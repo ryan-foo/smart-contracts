@@ -7,10 +7,9 @@ const BN = web3.utils.BN;
 
 const { expectEvent, expectRevert } = require('@openzeppelin/test-helpers');
 
-
 //global variables
-const ethAddress = '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE';
-const kncAddress = '0xdd974D5C2e2928deA5F71b9825b8b646686BD200';
+const ethAddress = "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE";
+const kncAddress = "0xdd974D5C2e2928deA5F71b9825b8b646686BD200";
 // We test with KNC
 const precisionUnits = (new BN(10).pow(new BN(18)));
 const bps = new BN(10000);
@@ -52,7 +51,7 @@ contract('SanityRatesAPR', function(accounts) {
         rate = new BN(1).mul(precisionUnits.div(new BN(10)));
         reasonableDiff = new BN(100);
 
-        sanityRatesAPR = await SanityRatesAPR.new(admin);
+        sanityRatesAPR = await SanityRatesAPR.new(admin, kncAddress);
         await sanityRatesAPR.addOperator(operator);
 
     });
@@ -115,12 +114,6 @@ contract('SanityRatesAPR', function(accounts) {
 
     });
 
-    // 
-
-
-
-    // setOracle
-
     describe("Functionality of setOracle", async () => {
 
         it("should change the current oracle when you call setOracle with a valid address", async () => {
@@ -144,7 +137,7 @@ contract('SanityRatesAPR', function(accounts) {
 
         it("should not allow non-operator to set the Oracle", async () => {
             try {
-                let userAsOracle = await SanityRatesAPR.setOracle(user);
+                let userAsOracle = await sanityRatesAPR.setOracle(user);
                 assert (false, "throw was expected in line above.");
 
             } catch (e){
@@ -157,13 +150,10 @@ contract('SanityRatesAPR', function(accounts) {
 
     describe("Functionality of queryOracle", async () => {
 
-        it("should only be accessible from within the contract", async () => {
-            await sanityRatesAPR.queryOracle(token, ethAddress, {from: user});
-        });
-
-        it("should query the oracle and receive the oracle's rates.", async () => {
+        it("should query the oracle and receive the oracle's rates", async () => {
             let expectedOracleRates = 10000;
-            let oracleRates = await sanityRatesAPR.queryOracle(token, ethAddress);
+
+            let oracleRates = await sanityRatesAPR.queryOracle(ethAddress, kncAddress);
             Helper.assertEqual(expectedOracleRates, oracleRates);
         });
 
@@ -224,84 +214,85 @@ contract('SanityRatesAPR', function(accounts) {
     // also failing use cases, and successful cases
     // checks for regression as well
 
-    describe("Legacy from SanityRates", async () => {
+    // describe("Legacy from SanityRates", async () => {
 
-        it("check rates for token 0 (where diff is 0) so only tests rates", async () => {
-            let tokenToEthRate = await sanityRatesAPR.getSanityRate(token, ethAddress);
-            Helper.assertEqual(tokenToEthRate, rate, "unexpected rate");
+    //     it("check rates for token 0 (where diff is 0) so only tests rates", async () => {
+    //         let tokenToEthRate = await sanityRatesAPR.getSanityRate(token, ethAddress);
+    //         Helper.assertEqual(tokenToEthRate, rate, "unexpected rate");
     
-            let expectedEthToToken = precisionUnits.mul(precisionUnits).div(tokenToEthRate);
-            let ethToTokenRate = await sanityRatesAPR.getSanityRate(ethAddress, token);
-            Helper.assertEqual(expectedEthToToken, ethToTokenRate, "unexpected rate");
-        });
+    //         let expectedEthToToken = precisionUnits.mul(precisionUnits).div(tokenToEthRate);
+    //         let ethToTokenRate = await sanityRatesAPR.getSanityRate(ethAddress, token);
+    //         Helper.assertEqual(expectedEthToToken, ethToTokenRate, "unexpected rate");
+    //     });
     
     
-        it("check rates with reasonable diff", async () => {
-            let expectedTokenToEthRate = rate.mul(bps.add(reasonableDiff)).div(bps);
+    //     it("check rates with reasonable diff", async () => {
+    //         let expectedTokenToEthRate = rate.mul(bps.add(reasonableDiff)).div(bps);
     
-            let tokenToEthRate = await sanityRatesAPR.getSanityRate(token, ethAddress);
-            Helper.assertEqual(tokenToEthRate, expectedTokenToEthRate, "unexpected rate");
+    //         let tokenToEthRate = await sanityRatesAPR.getSanityRate(token, ethAddress);
+    //         Helper.assertEqual(tokenToEthRate, expectedTokenToEthRate, "unexpected rate");
     
-            let expectedEthToToken = precisionUnits.mul(precisionUnits).div(rate).mul(bps.add(reasonableDiff)).div(bps);
-            let ethToTokenRate = await sanityRatesAPR.getSanityRate(ethAddress, token);
-            Helper.assertEqual(expectedEthToToken, ethToTokenRate, "unexpected rate");
-        });
+    //         let expectedEthToToken = precisionUnits.mul(precisionUnits).div(rate).mul(bps.add(reasonableDiff)).div(bps);
+    //         let ethToTokenRate = await sanityRatesAPR.getSanityRate(ethAddress, token);
+    //         Helper.assertEqual(expectedEthToToken, ethToTokenRate, "unexpected rate");
+    //     });
     
-        it("should test can't init this contract with empty contracts (address 0)", async () => {
-            let sanityRatess;
     
-            try {
-            sanityRatess = await SanityRatesAPR.new(zeroAddress);
-            assert(false, "throw was expected in line above.")
-            } catch(e){
-            assert(Helper.isRevertErrorMessage(e), "expected throw but got: " + e);
-            }
+    //         sanityRatess = await SanityRatesAPR.new(admin);
+    //     });
     
-            sanityRatess = await SanityRatesAPR.new(admin);
-        });
+    //     it("should test can't init diffs when value > max diff (10000 = 100%)", async () => {
+    //         reasonableDiff =  new BN(10001);
     
-        it("should test can't init diffs when value > max diff (10000 = 100%)", async () => {
-            reasonableDiff =  new BN(10001);
+    //         try {
+    //             await sanityRatesAPR.setReasonableDiff(reasonableDiff);
+    //             assert(false, "throw was expected in line above.")
+    //         } catch(e){
+    //         assert(Helper.isRevertErrorMessage(e), "expected throw but got: " + e);
+    //         }
     
-            try {
-                await sanityRatesAPR.setReasonableDiff(reasonableDiff);
-                assert(false, "throw was expected in line above.")
-            } catch(e){
-            assert(Helper.isRevertErrorMessage(e), "expected throw but got: " + e);
-            }
+    //         reasonableDiff = new BN(10000);
     
-            reasonableDiff = new BN(10000);
+    //         await sanityRatesAPR.setReasonableDiff(reasonableDiff);
+    //     });
+
+    // it("should test can't init this contract with empty contracts (address 0)", async () => {
+    //     let sanityRatess;
+
+    //     try {
+    //     sanityRatess = await SanityRatesAPR.new(zeroAddress);
+    //     assert(false, "throw was expected in line above.")
+    //     } catch(e){
+    //     assert(Helper.isRevertErrorMessage(e), "expected throw but got: " + e);
+    //     }
     
-            await sanityRatesAPR.setReasonableDiff(reasonableDiff);
-        });
+    //     it("should test reverts when sanity rate > maxRate (10**24)", async function () {
+    //         let legalRate = (new BN(10)).pow(new BN(24));
+    //         let illegalRate = legalRate.add(new BN(1));
     
-        it("should test reverts when sanity rate > maxRate (10**24)", async function () {
-            let legalRate = (new BN(10)).pow(new BN(24));
-            let illegalRate = legalRate.add(new BN(1));
+    //         rate = illegalRate;
     
-            rate = illegalRate;
+    //         try {
+    //             await sanityRatesAPR.setSanityRates(rate, {from: operator});
+    //             assert(false, "throw was expected in line above.")
+    //         } catch(e){
+    //         assert(Helper.isRevertErrorMessage(e), "expected throw but got: " + e);
+    //         }
     
-            try {
-                await sanityRatesAPR.setSanityRates(rate, {from: operator});
-                assert(false, "throw was expected in line above.")
-            } catch(e){
-            assert(Helper.isRevertErrorMessage(e), "expected throw but got: " + e);
-            }
+    //         rate = legalRate;
+    //         await sanityRatesAPR.setSanityRates(rate, {from: operator});
+    //     });
     
-            rate = legalRate;
-            await sanityRatesAPR.setSanityRates(rate, {from: operator});
-        });
+    //     it("should test return rate 0 when both are token (no ether)", async function () {
+    //         let rate0 = await sanityRatesAPR.getSanityRate(token, accounts[3]);
+    //         Helper.assertEqual(rate0, 0, "0 rate expected");
+    //         rate0 = await sanityRatesAPR.getSanityRate(accounts[2], token);
+    //         Helper.assertEqual(rate0, 0, "0 rate expected");
+    //         rate0 = await sanityRatesAPR.getSanityRate(token, accounts[4]);
+    //         Helper.assertEqual(rate0, 0, "0 rate expected");
+    //     });
     
-        it("should test return rate 0 when both are token (no ether)", async function () {
-            let rate0 = await sanityRatesAPR.getSanityRate(token, accounts[3]);
-            Helper.assertEqual(rate0, 0, "0 rate expected");
-            rate0 = await sanityRatesAPR.getSanityRate(accounts[2], token);
-            Helper.assertEqual(rate0, 0, "0 rate expected");
-            rate0 = await sanityRatesAPR.getSanityRate(token, accounts[4]);
-            Helper.assertEqual(rate0, 0, "0 rate expected");
-        });
-    
-    });
+    // });
 
 
 

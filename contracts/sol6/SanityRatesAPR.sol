@@ -4,6 +4,8 @@ import "./IERC20.sol";
 import "./utils/WithdrawableNoModifiers.sol";
 import "./utils/Utils5.sol";
 import "./ISanityRateAPR.sol";
+import "@nomiclabs/buidler/console.sol";
+
 
 contract SanityRatesAPR is ISanityRateAPR, WithdrawableNoModifiers, Utils5 {
 
@@ -18,13 +20,16 @@ contract SanityRatesAPR is ISanityRateAPR, WithdrawableNoModifiers, Utils5 {
     // move to sol6 folder
     // Because more features --> require, revert messages
     // additional keywords
+
+    // assumption: if it is a token, it will either return 0 rate or revert
     
     IERC20 public token;
     uint public tokenRate;
     uint public reasonableDiffInBps;
     address public oracleAddress;
 
-    constructor(address _admin) public WithdrawableNoModifiers(_admin) {
+    constructor(address _admin, IERC20 _token) public WithdrawableNoModifiers(_admin) {
+        token = _token;
     }
 
     function setReasonableDiff(uint diff) public {
@@ -57,6 +62,10 @@ contract SanityRatesAPR is ISanityRateAPR, WithdrawableNoModifiers, Utils5 {
         // then use price feeds as an alternative to the sanity rate.
         
         // if (oracleAddress == 'address') return 0;
+        console.log(address(ETH_TOKEN_ADDRESS));
+        console.log(address(src));
+        console.log(address(dest));
+        console.log(address(token));
 
         if (src != ETH_TOKEN_ADDRESS || dest != ETH_TOKEN_ADDRESS) return 0;
         if (src != token || dest != token) return 0;
