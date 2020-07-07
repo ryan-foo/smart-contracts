@@ -149,14 +149,14 @@ contract('SanityRatesAPR', function(accounts) {
 
     });
 
-    // describe("Functionality of setOracle", async () => {
+    describe("Functionality of setOracle", async () => {
 
-    //     it("should change the current oracle when you call setOracle with a valid address", async () => {
-    //         await sanityRatesAPR.setOracle(oracle, {from: operator});
-    //         // to do
-    //         let expectedOracleAddress = oracle;
-    //         return Helper.assertEqual(await sanityRatesAPR.oracleAddress(), expectedOracleAddress);
-    //     });
+        // it("should change the current oracle when you call setOracle with a valid address", async () => {
+        //     await sanityRatesAPR.setOracle(oracle, {from: operator});
+
+        //     let expectedOracleAddress = oracle;
+        //     return Helper.assertEqual(await sanityRatesAPR.oracleAddress(), expectedOracleAddress);
+        // });
     
     //     it("should warn you when you set an invalid oracle address", async () => {
     //         // Accomplished by attempting to call the method specified by the oracle interface
@@ -170,18 +170,17 @@ contract('SanityRatesAPR', function(accounts) {
     //         }
     //     });
 
-    //     it("should not allow non-operator to set the Oracle", async () => {
-    //         try {
-    //             let userAsOracle = await sanityRatesAPR.setOracle(user);
-    //             assert (false, "throw was expected in line above.");
+        it("should not allow non-operator to set the Oracle", async () => {
+            try {
+                let userAsOracle = await sanityRatesAPR.setOracle(user);
+                assert (false, "throw was expected in line above.");
 
-    //         } catch (e){
-    //             assert(Helper.isRevertErrorMessage(e), "expected throw but got: " + e);
-    //         }
-
-    //     });
+            } catch (e){
+                assert(Helper.isRevertErrorMessage(e), "expected throw but got: " + e);
+            }
+        });
     
-    // });
+    });
 
     // describe("Functionality of queryOracle", async () => {
 
@@ -220,6 +219,17 @@ contract('SanityRatesAPR', function(accounts) {
             Helper.assertEqual(expectedSanityRate, await sanityRatesAPR.getSanityRate(ethAddress, user));
 
         });
+        
+        it("should test return rate 0 when both are token (no ether)", async function () {
+            let rate0 = await sanityRatesAPR.getSanityRate(token, token);
+            Helper.assertEqual(rate0, 0, "0 rate expected");
+            rate0 = await sanityRatesAPR.getSanityRate(zeroAddress, token);
+            Helper.assertEqual(rate0, 0, "0 rate expected");
+            rate0 = await sanityRatesAPR.getSanityRate(token, zeroAddress);
+            Helper.assertEqual(rate0, 0, "0 rate expected");
+        });
+
+
 
         it("should return rates with reasonable diff", async () => {
             reasonableDiff = new BN(10000);
@@ -245,49 +255,6 @@ contract('SanityRatesAPR', function(accounts) {
 
     // also failing use cases, and successful cases
     // checks for regression as well
-
-    // describe("Legacy from SanityRates", async () => {
-
-    
-    //     it("check rates with reasonable diff", async () => {
-    //         let expectedTokenToEthRate = rate.mul(bps.add(reasonableDiff)).div(bps);
-    
-    //         let tokenToEthRate = await sanityRatesAPR.getSanityRate(token, ethAddress);
-    //         Helper.assertEqual(tokenToEthRate, expectedTokenToEthRate, "unexpected rate");
-    
-    //         let expectedEthToToken = precisionUnits.mul(precisionUnits).div(rate).mul(bps.add(reasonableDiff)).div(bps);
-    //         let ethToTokenRate = await sanityRatesAPR.getSanityRate(ethAddress, token);
-    //         Helper.assertEqual(expectedEthToToken, ethToTokenRate, "unexpected rate");
-    //     });
-    
-    
-    //         sanityRatess = await SanityRatesAPR.new(admin);
-    //     });
-    
-    //     it("should test can't init diffs when value > max diff (10000 = 100%)", async () => {
-    //         reasonableDiff =  new BN(10001);
-    
-    //         try {
-    //             await sanityRatesAPR.setReasonableDiff(reasonableDiff);
-    //             assert(false, "throw was expected in line above.")
-    //         } catch(e){
-    //         assert(Helper.isRevertErrorMessage(e), "expected throw but got: " + e);
-    //         }
-    
-    //         reasonableDiff = new BN(10000);
-    
-    //         await sanityRatesAPR.setReasonableDiff(reasonableDiff);
-    //     });
-
-    // it("should test can't init this contract with empty contracts (address 0)", async () => {
-    //     let sanityRatess;
-
-    //     try {
-    //     sanityRatess = await SanityRatesAPR.new(zeroAddress);
-    //     assert(false, "throw was expected in line above.")
-    //     } catch(e){
-    //     assert(Helper.isRevertErrorMessage(e), "expected throw but got: " + e);
-    //     }
     
     //     it("should test reverts when sanity rate > maxRate (10**24)", async function () {
     //         let legalRate = (new BN(10)).pow(new BN(24));
