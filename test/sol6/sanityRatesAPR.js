@@ -95,6 +95,21 @@ contract('SanityRatesAPR', function(accounts) {
             }
         });
 
+        it("should test can't init diffs when value > max diff (10000 = 100%)", async () => {
+            reasonableDiff =  new BN(10001);
+    
+            try {
+                await sanityRatesAPR.setReasonableDiff(reasonableDiff);
+                assert(false, "throw was expected in line above.")
+            } catch(e){
+            assert(Helper.isRevertErrorMessage(e), "expected throw but got: " + e);
+            }
+    
+            reasonableDiff = new BN(10000);
+    
+            await sanityRatesAPR.setReasonableDiff(reasonableDiff);
+        });
+
     });
 
     describe("Functionality of setSanityRates", async() => {
