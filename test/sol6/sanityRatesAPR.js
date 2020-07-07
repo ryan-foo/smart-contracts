@@ -59,6 +59,23 @@ contract('SanityRatesAPR', function(accounts) {
 
     });
 
+    describe("Initializing contract", async() => {
+
+        it("should test can't init this contract with empty contracts (address 0).", async function () {
+            let sanityRatess;
+    
+            try {
+               sanityRatess = await SanityRatesAPR.new(zeroAddress, kncAddress);
+               assert(false, "throw was expected in line above.")
+            } catch(e){
+               assert(Helper.isRevertErrorMessage(e), "expected throw but got: " + e);
+            }
+    
+            sanityRatess = await SanityRatesAPR.new(admin, kncAddress);
+        });
+
+    });
+
     describe("Functionality of setReasonableDiff", async() => {
         it("should change reasonableDiff from the default reasonableDiff", async() => {
             expectedReasonableDiff = new BN(10000);
@@ -204,16 +221,6 @@ contract('SanityRatesAPR', function(accounts) {
             let ethToTokenRate = await sanityRatesAPR.getSanityRate(ethAddress, token);
             Helper.assertEqual(expectedEthToToken, ethToTokenRate, "unexpected rate");
         });
-
-
-        // it("should return sanityRates unchanged when reasonableDiff is set to 0", async () => {
-        //     expectedSanityRate = 1.1 * 150000;
-        //     sanityRate = await sanityRatesAPR.setSanityRates(150000, {from: operator});
-        //     reasonableDiff = await sanityRatesAPR.setReasonableDiff(0, {from:admin});
-
-        //     Helper.assertEqual(expectedSanityRate, await sanityRatesAPR.getSanityRate(ethAddress, kncAddress));
-
-        // });
 
         // it("should use the oracle's rate and reasonableDiff to set the sanity rates", async () => {
             
