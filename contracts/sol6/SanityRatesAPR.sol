@@ -62,16 +62,11 @@ contract SanityRatesAPR is ISanityRateAPR, WithdrawableNoModifiers, Utils5 {
         // then use price feeds as an alternative to the sanity rate.
         
         // if (oracleAddress == 'address') return 0;
-        console.log(address(ETH_TOKEN_ADDRESS));
-        console.log(address(src));
-        console.log(address(dest));
-        console.log(address(token));
 
-        if (src != ETH_TOKEN_ADDRESS || dest != ETH_TOKEN_ADDRESS) return 0;
-        if (src != token || dest != token) return 0;
+        if (src != ETH_TOKEN_ADDRESS && dest != ETH_TOKEN_ADDRESS) return 0;
         if (src == ETH_TOKEN_ADDRESS && dest != token) return 0;
         if (src == token && dest != ETH_TOKEN_ADDRESS) return 0;
-        
+
         // uses oracleAddress
 
         // logic to interface with whatever chosen oracle -- getRate(?) should be implemented.
@@ -80,40 +75,36 @@ contract SanityRatesAPR is ISanityRateAPR, WithdrawableNoModifiers, Utils5 {
 
         // have a flag -- if using 3rd party, query protocol, if self maintaining, query rates from storage instead
 
-
         // returns a Sanity Rate from the Oracle <oracleRate>
         return 10000;
     }
 
     // this is when we return the sanity rate (just for the particular token)
 
-    function getSanityRate(IERC20 src, IERC20 dest) external payable override returns(uint) {
+    function getSanityRate(IERC20 src, IERC20 dest) external view override returns(uint) {
 
         // Some type of on-chain logic that compares sanityRate from queryOracle with sanityRate set
         // by operator. Choose whichever will prevent the trade (ie, whichever is less).
-
-        if (src != ETH_TOKEN_ADDRESS || dest != ETH_TOKEN_ADDRESS) return 0;
-        if (src != token || dest != token) return 0;
+        
+        if (src != ETH_TOKEN_ADDRESS && dest != ETH_TOKEN_ADDRESS) return 0;
         if (src == ETH_TOKEN_ADDRESS && dest != token) return 0;
         if (src == token && dest != ETH_TOKEN_ADDRESS) return 0;
 
         // if src is ETH, then dest must be token, otherwise if src is token, then dest must be ETH
 
-        // check if the rate its asking for is the same token?
-
         uint rate;
         uint oracleRate;
 
-        // refactor: let them have the choice of having 3rd party oracle or local storage rates
-
-        if (src == ETH_TOKEN_ADDRESS) {
-            oracleRate = (PRECISION*PRECISION)/(queryOracle(src, dest)); // check again if src/dest is correct
+        if (src == ETH_TOKEN_ADDRESS && dest == token) {
+            oracleRate = (PRECISION*PRECISION)/(queryOracle(src, dest));
             rate = (PRECISION*PRECISION)/tokenRate;
-            token = dest;
-        } else {
+        } 
+        else if (src == token && dest == ETH_TOKEN_ADDRESS) {
             oracleRate = queryOracle(dest, src);
             rate = tokenRate;
-            token = src;
+        }
+        else {
+            return 0;
         }
 
         // if currRate differs from the sanity Rate more than 2% -- reasonable diff, use the sanityRate instead.
