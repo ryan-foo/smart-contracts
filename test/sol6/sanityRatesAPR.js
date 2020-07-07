@@ -166,7 +166,7 @@ contract('SanityRatesAPR', function(accounts) {
 
     describe("Functionality of getSanityRate", async () => {
 
-        it("check rates for token 0 (where diff is 0) so only tests rates", async () => {
+        it("should return rates for token when diff is 0", async () => {
             await sanityRatesAPR.setSanityRates(rate, {from: operator});
             await sanityRatesAPR.setReasonableDiff(0, {from: admin});
 
@@ -180,14 +180,31 @@ contract('SanityRatesAPR', function(accounts) {
             Helper.assertEqual(expectedEthToToken, ethToTokenRate, "unexpected rate");
         });
 
-        // it("should return zero if called with the wrong token", async () => {
-        //     let expectedSanityRate = 0;
-        //     reasonableDiff = await sanityRatesAPR.setReasonableDiff(10000, {from:admin});
-        //     sanityRate = await sanityRatesAPR.setSanityRates(100000, {from: operator});
+        it("should return zero if called with the wrong token", async () => {
+            let expectedSanityRate = 0;
+            reasonableDiff = await sanityRatesAPR.setReasonableDiff(10000, {from:admin});
+            sanityRate = await sanityRatesAPR.setSanityRates(100000, {from: operator});
 
-        //     Helper.assertEqual(expectedSanityRate, await sanityRatesAPR.getSanityRate(ethAddress, user));
+            Helper.assertEqual(expectedSanityRate, await sanityRatesAPR.getSanityRate(ethAddress, user));
 
-        // });
+        });
+
+        it("should return rates with reasonable diff", async () => {
+            reasonableDiff = new BN(10000);
+
+            let expectedTokenToEthRate = rate.mul(bps.add(reasonableDiff)).div(bps);
+
+            await sanityRatesAPR.setSanityRates(rate, {from: operator});
+            await sanityRatesAPR.setReasonableDiff(reasonableDiff, {from: admin});
+    
+            let tokenToEthRate = await sanityRatesAPR.getSanityRate(token, ethAddress);
+            Helper.assertEqual(tokenToEthRate, expectedTokenToEthRate, "unexpected rate");
+    
+            let expectedEthToToken = precisionUnits.mul(precisionUnits).div(rate).mul(bps.add(reasonableDiff)).div(bps);
+            let ethToTokenRate = await sanityRatesAPR.getSanityRate(ethAddress, token);
+            Helper.assertEqual(expectedEthToToken, ethToTokenRate, "unexpected rate");
+        });
+
 
         // it("should return sanityRates unchanged when reasonableDiff is set to 0", async () => {
         //     expectedSanityRate = 1.1 * 150000;
