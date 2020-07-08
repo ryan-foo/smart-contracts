@@ -6,6 +6,9 @@ import "./utils/Utils5.sol";
 import "./ISanityRateAPR.sol";
 import "@nomiclabs/buidler/console.sol";
 
+import {IBridge} from "./IBridge.sol";
+import {ParamsDecoder, ResultDecoder} from "./Decoders.sol";
+import "openzeppelin-solidity/contracts/math/SafeMath.sol";
 
 contract SanityRatesAPR is ISanityRateAPR, WithdrawableNoModifiers, Utils5 {
 
