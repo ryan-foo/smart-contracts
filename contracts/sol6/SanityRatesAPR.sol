@@ -4,6 +4,7 @@ import "./IERC20.sol";
 import "./utils/WithdrawableNoModifiers.sol";
 import "./utils/Utils5.sol";
 import "./ISanityRateAPR.sol";
+import "./IOracle.sol";
 import "@nomiclabs/buidler/console.sol";
 import "@chainlink/contracts/src/v0.6/ChainlinkClient.sol";
 
@@ -70,6 +71,7 @@ contract SanityRatesAPR is ISanityRateAPR, WithdrawableNoModifiers, Utils5 {
         // uses oracleAddress
 
         // logic to interface with whatever chosen oracle -- getRate(?) should be implemented.
+        
 
         // allow users to have the choice, to use many different oracle services, so it might have to be more flexible <band protocol for oracles>
 
