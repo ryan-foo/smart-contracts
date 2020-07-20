@@ -5,6 +5,7 @@ import "./utils/WithdrawableNoModifiers.sol";
 import "./utils/Utils5.sol";
 import "./ISanityRateAPR.sol";
 import "./IOracle.sol";
+import "./BinanceChainlink.sol";
 import "@nomiclabs/buidler/console.sol";
 import "@chainlink/contracts/src/v0.6/ChainlinkClient.sol";
 
@@ -27,7 +28,7 @@ contract SanityRatesAPR is ISanityRateAPR, WithdrawableNoModifiers, Utils5 {
     IERC20 public token;
     uint public tokenRate;
     uint public reasonableDiffInBps;
-    address public oracleAddress;
+    address public oracleInterface;
 
     constructor(address _admin, IERC20 _token) public WithdrawableNoModifiers(_admin) {
         token = _token;
@@ -46,14 +47,15 @@ contract SanityRatesAPR is ISanityRateAPR, WithdrawableNoModifiers, Utils5 {
     }
         // This function is where rates are being submitted from off-chain (when manually set)
 
-    function setOracle(address oracle) public {
+    function setOracleInterface(address oracle) public {
         onlyOperator();
         // if Oracle is a valid ETH address and has implemented getRates() (for example), return true
         // to do: what if someone calls an invalid ETH address? what if its just a random person?
 
-        // include an attempt to queryOracle here
+        // include an attempt to queryOracle here, using the oracle interface implementation..
+        // The Oracle Interface implementation should have getRates and of course talk to the oracle..
 
-        oracleAddress = oracle;
+        oracleInterface = oracle;
     }
 
     function queryOracle(IERC20 src, IERC20 dest) public view returns(uint) {
@@ -98,11 +100,11 @@ contract SanityRatesAPR is ISanityRateAPR, WithdrawableNoModifiers, Utils5 {
         uint oracleRate;
 
         if (src == ETH_TOKEN_ADDRESS && dest == token) {
-            oracleRate = (PRECISION*PRECISION)/(queryOracle(src, dest));
+            oracleRate =  queryOracle(src, dest);
             rate = (PRECISION*PRECISION)/tokenRate;
         } 
         else if (src == token && dest == ETH_TOKEN_ADDRESS) {
-            oracleRate = queryOracle(dest, src);
+            oracleRate = queryOracle(src, dest);
             rate = tokenRate;
         }
         else {

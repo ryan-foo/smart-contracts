@@ -149,20 +149,20 @@ contract('SanityRatesAPR', function(accounts) {
 
     });
 
-    describe("Functionality of setOracle", async () => {
+    describe("Functionality of setOracleInterface", async () => {
 
         // it("should change the current oracle when you call setOracle with a valid address", async () => {
-        //     await sanityRatesAPR.setOracle(oracle, {from: operator});
+        //     await sanityRatesAPR.setOracleInterface(oracle, {from: operator});
 
-        //     let expectedOracleAddress = oracle;
-        //     return Helper.assertEqual(await sanityRatesAPR.oracleAddress(), expectedOracleAddress);
+        //     let expectedOracleInterfaceAddress = oracle;
+        //     return Helper.assertEqual(await sanityRatesAPR.oracleInterface(), expectedOracleInterfaceAddress);
         // });
     
     //     it("should warn you when you set an invalid oracle address", async () => {
     //         // Accomplished by attempting to call the method specified by the oracle interface
 
     //         try {
-    //             await sanityRatesAPR.setOracle(user, {from: operator});
+    //             await sanityRatesAPR.setOracleInterface(user, {from: operator});
     //             assert (false, "throw was expected in line above.");
 
     //         } catch (e){
@@ -170,9 +170,9 @@ contract('SanityRatesAPR', function(accounts) {
     //         }
     //     });
 
-        it("should not allow non-operator to set the Oracle", async () => {
+        it("should not allow non-operator to set the Oracle Interface", async () => {
             try {
-                let userAsOracle = await sanityRatesAPR.setOracle(user);
+                let userAsOracle = await sanityRatesAPR.setOracleInterface(user);
                 assert (false, "throw was expected in line above.");
 
             } catch (e){
