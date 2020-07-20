@@ -2,6 +2,7 @@ pragma solidity 0.6.6;
 
 import "@chainlink/contracts/src/v0.6/ChainlinkClient.sol";
 import "./IOracle.sol";
+import "./utils/Utils5.sol";
 
 /*/
 LINK Token address: 0x20fE562d797A42Dcb3399062AE9546cd06f63280
@@ -11,52 +12,47 @@ Bytes32 JobID: 1e322d70fce94991baa56e7151acddcf
 Uint256 JobID: b8b8a31a3833434eba5bff70b203343d
 /*/
 
+// This contract will have to be funded with LINK in order to create Chainlink requests.
 
 // MyContract inherits the ChainlinkClient contract to gain the
 // functionality of creating Chainlink requests
 contract BinanceChainlink is ChainlinkClient, IOracle {
   // Stores the answer from the Chainlink oracle
-  uint256 public currentPrice;
+  ChainlinkClient public immutable oracle;
   address public owner;
-  uint256 oraclePayment;
+  uint256 public oracleFee;
 
-  constructor(uint256 _oraclePayment) public {
+  modifier onlyOwner() {
+    require(msg.sender == owner);
+    _;
+  }
+
+  constructor (address _oracle, uint256 _oracleFee) public {
     // Set the address for the LINK token for the network
     setPublicChainlinkToken();
+    oracle = _oracle;
+    oracleFee = _oracleFee;
     owner = msg.sender;
   }
 
-  function getAvgPrice(address _oracle, bytes32 _jobId, string _symbol)
-  public
-  onlyOwner
-    {
-    Chainlink.Request memory req = buildChainlinkRequest(_jobId, address(this), this.fulfillPrice.selector);
-    req.add("endpoint", "avgPrice");
-    req.add("symbol", _symbol);
-    req.add("copyPath", "price");
-    req.addInt("times", 100);
-    sendChainlinkRequestTo(_oracle, req, oraclePayment);
-    }
+  // https://docs.chain.link/docs/binance-chainlink-testnet#config
 
-  function getRate(address _oracle, IERC20 src, IERC20 dest) external view returns (uint) {
+  function getRate(IERC20 src, IERC20 dest) external view returns (uint) {
 
-    if (src == ETH_CONTRACT_ADDRESS) {
-      getAvgPrice(, _jobId, )
+    if (src == ETH_TOKEN_ADDRESS) {
+        // call the getPrice, await response, then format response into desired uint rate
 
     }
-    else if (dest == ETH_CONTRACT_ADDRESS) {
+    else if (dest == ETH_TOKEN_ADDRESS) {
+        // call get the getPrice for the pair, await response, then format response into desired uint rate
 
     }
 
     return currentPrice;
   }
 
-  event CurrentPrice(uint256 _price);
-
-  function fulfillPrice(bytes32 _requestId, uint256 _price) public recordChainlinkFulfillment(_requestId)
-    {
-      emit CurrentPrice(_price);
-    }
+// My understanding:
+// Create a Chainlink
 
   // Creates a Chainlink request with the uint256 multiplier job
   function requestEthereumPrice(address _oracle, bytes32 _jobId, uint256 _payment) 
@@ -97,7 +93,7 @@ contract BinanceChainlink is ChainlinkClient, IOracle {
     cancelChainlinkRequest(_requestId, _payment, _callbackFunctionId, _expiration);
   }
 
-  
+
   // withdrawLink allows the owner to withdraw any extra LINK on the contract
   function withdrawLink()
     public
@@ -105,10 +101,5 @@ contract BinanceChainlink is ChainlinkClient, IOracle {
   {
     LinkTokenInterface link = LinkTokenInterface(chainlinkTokenAddress());
     require(link.transfer(msg.sender, link.balanceOf(address(this))), "Unable to transfer");
-  }
-  
-  modifier onlyOwner() {
-    require(msg.sender == owner);
-    _;
   }
 }
